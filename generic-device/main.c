@@ -23,7 +23,7 @@
 #define THIS_SO            TRX_BEACON_ORDER_5 // ~0.5 seconds
 
 #include <avr/io.h>
-#include <stdlib.h>
+#include <stdio.h>
 #include <avr/interrupt.h>
 
 #include "uart.c"
@@ -111,6 +111,11 @@ ISR(TRX24_TX_END_vect)
 //   if(!(trx24PLMA_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);
 
    if(!(trx24MCPS_DATA(ADC_data, 1, TRX_FB_START(2), TRX_SEND_INTRAPAN\TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55);
+
+
+//send sampled ADC value
+
+
 
 //only tx will be the beacon, set to RX_ON state after beacon is tx'd
   // if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON))) err(10);
