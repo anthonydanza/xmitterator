@@ -1,0 +1,2 @@
+#!/bin/bash
+sudo avrdude -p m128rfa1 -c avrispmkII -P usb:000200039724 -e -U flash:w:xmit_test_PAN.hex
