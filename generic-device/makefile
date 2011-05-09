@@ -55,7 +55,7 @@ AVRDUDE_PROGRAMMERID=avrispmkII
 # port--serial or parallel port to which your 
 # hardware programmer is attached
 #
-AVRDUDE_PORT=usb:000200039724
+AVRDUDE_PORT=usb
 
 
 ####################################################

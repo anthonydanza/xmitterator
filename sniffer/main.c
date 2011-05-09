@@ -37,7 +37,7 @@ void err(uint8_t num)
     uart0_print_uint(num);
     uart0_put('\n');
     uart0_put('\n');
-    uart0_print_hex(trx24_get_status());
+  //  uart0_print_hex(trx24_get_status());
     uart0_put('\r');
     uart0_put('\r');
 
@@ -121,7 +121,7 @@ int main(void)
     
     if(!(trx24_init(TRX_INIT_PROMISCUOUS|TRX_INIT_RECV_RES_FRAMES, THIS_CHANNEL))) err(1);
 
-    uart0_print_hex(trx24_get_status());
+  //  uart0_print_hex(trx24_get_status());
     uart0_put('\n');
     uart0_put('\r');
 
@@ -146,7 +146,7 @@ int main(void)
     uart0_put('\r');
     uart0_put('\n');
 
-    if(!(trx24_set_state(TRX_STATE_RX_ON)))
+    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON)))
         err(24);   
     sei();
 

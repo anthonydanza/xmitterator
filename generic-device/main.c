@@ -35,7 +35,7 @@ uint8_t hello_message[] = {'H','e','l','l','o',' ','P','A','N','-','C','!'};
 uint8_t mutant_i = 0;
 
 // general globals
-uint8_t ADC_data = 0;
+uint8_t ADC_data = 10;
 
 
 //-------------------------------------------------
@@ -61,14 +61,44 @@ void err(uint8_t num)
 ISR(ADC_vect) {
 
 ADC_data = ADCH;	//put left-adjusted 8-bit val into ADC_data
+    uart0_put('\n');
+    uart0_put('\r');
+    uart0_put('a');
+    uart0_put('d');
+    uart0_put('c');
+    uart0_put(' ');
+    uart0_put('i');
+    uart0_put('n');
+    uart0_put('t');
+    uart0_put('e');
+    uart0_put('r');
+    uart0_put('r');
+    uart0_put('u');
+    uart0_put('p');
+    uart0_put('t');
+    uart0_put('\n');
+    uart0_put('\r');
+    uart0_put('\n');
+    uart0_put('\r');
+    uart0_put('v');
+    uart0_put('a');
+    uart0_put('l');
+    uart0_put('=');
 
-if(!(trx24PLMA_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
+if(ADCH>1)uart0_put(ADCH);
+
+    uart0_put('\n');
+    uart0_put('\r');
+
+
+
+if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
 
 ADCSRA |= 0x08;	        //reenable ADC interrupts
 
 }
 
-ISR(TRX24_RX_END_vect)
+/*ISR(TRX24_RX_END_vect)
 {
    trx24_set_rx_safe();
 
@@ -108,9 +138,9 @@ ISR(TRX24_TX_END_vect)
 {
    //check if ADC_data has been updated, transmit updated val
 
-//   if(!(trx24PLMA_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);
+   if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);
 
-   if(!(trx24MCPS_DATA(ADC_data, 1, TRX_FB_START(2), TRX_SEND_INTRAPAN\TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55);
+   if(!(trx24MCPS_DATA(ADC_data, 1, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55);
 
 
 //send sampled ADC value
@@ -161,7 +191,7 @@ ISR(SCNT_CMP3_vect)
     uart0_put('\r');
 
     if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON)))  err(25);   
-}
+}*/
 
 //-------------------------------------------------
 
@@ -188,7 +218,7 @@ int main(void)
     uart0_put('\n');
     uart0_put('\r');
     
-    if(!(trx24_init(TRX_INIT_PAN_COORD|TRX_INIT_TX_AUTO_CRC, THIS_CHANNEL))) err(1);
+ /*   if(!(trx24_init(TRX_INIT_PAN_COORD|TRX_INIT_TX_AUTO_CRC, THIS_CHANNEL))) err(1);
 
     if(!(trx24_set_address(THIS_SHORT_ADDR, THIS_PAN_ID, THIS_LONG_ADDR))) err(2);
 
@@ -218,18 +248,19 @@ int main(void)
     SCOCR2LH = (uint8_t)(timer_set >>  8);
     SCOCR2LL = (uint8_t)(timer_set & 0xFF);
 
-    //enable ADC, free-running auto-trigger mode
-    ADCSRA |= 0x80;	//enable ADC
-    ADCSRA |= 0x20;	//auto-trigger enable
-    ADCSRB &= 0xF8;	//free running mode
-    ADMUX |= 0x20;	//left-adjust ADC result
-
     //intialize the first beacon and let the rest be handled by the ISRs
 
-    trx24_sc_enable();
+    trx24_sc_enable(); */
 
     uart0_put('\n');
     uart0_put('\r');
+    uart0_put('g');
+    uart0_put('e');
+    uart0_put('n');
+    uart0_put('d');
+    uart0_put('e');
+    uart0_put('v');
+    uart0_put(' ');
     uart0_put('l');
     uart0_put('i');
     uart0_put('s');
@@ -242,9 +273,24 @@ int main(void)
     uart0_put('\n');
     uart0_put('\r');
 
-    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON)))
-        err(24);   
+    //enable ADC, free-running auto-trigger mode
+   /* ADCSRA |= 0x80;	//enable ADC
+    ADCSRA |= 0x20;	//auto-trigger enable
+    ADCSRB &= 0xF8;	//free running mode
+    ADMUX |= 0x20;	//left-adjust ADC result*/
+
+   ADCSRA |= (0 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); // Set ADC prescaler to 128 - 125KHz sample rate @ 16MHz 
+   ADMUX |= (1 << REFS0); // Set ADC reference to AVCC 
+   ADMUX |= (1 << ADLAR); // Left adjust ADC result to allow easy 8 bit reading 
+   ADCSRB &= 0xF8;	//free running mode
+   ADCSRA |= (1 << ADEN);  // Enable ADC 
+   ADCSRA |= (1 << ADIE);  // Enable ADC Interrupt 
+   ADCSRA |= (1 << ADSC);  // Start A2D Conversions 
+
+   // if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON)))
+     //   err(24);   
     sei();
-    ADCSRA |= 0x40;	//start first ADC conversion
-    while(1) continue;
+
+    while(1){    //uart0_put('a');
+ continue;}
 }
