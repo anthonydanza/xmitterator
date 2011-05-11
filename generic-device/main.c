@@ -31,7 +31,8 @@
 
 // gloabal device params 
 
-uint8_t hello_message[] = {'H','e','l','l','o',' ','P','A','N','-','C','!'};
+uint8_t hello_message[] = {'H','e','l','l','o',' ','D','U','D','E','S','!'};
+uint8_t tx_mesg[] = {'A','D','C',' ','V','A','L','='};
 uint8_t mutant_i = 0;
 
 // general globals
@@ -60,13 +61,16 @@ void err(uint8_t num)
 //-------------------------------------------------
 ISR(ADC_vect) {
 
-ADC_data = ADCH;	//put left-adjusted 8-bit val into ADC_data
+    ADCSRA &= 0xF7;	//diasble interrupts
+  
+    ADC_data = ADCH;	//put left-adjusted 8-bit val into ADC_data
+
     uart0_put('\n');
     uart0_put('\r');
     uart0_put('a');
     uart0_put('d');
     uart0_put('c');
-    uart0_put(' ');
+    uart0_put('_');
     uart0_put('i');
     uart0_put('n');
     uart0_put('t');
@@ -78,27 +82,33 @@ ADC_data = ADCH;	//put left-adjusted 8-bit val into ADC_data
     uart0_put('t');
     uart0_put('\n');
     uart0_put('\r');
-    uart0_put('\n');
-    uart0_put('\r');
     uart0_put('v');
     uart0_put('a');
     uart0_put('l');
     uart0_put('=');
+    uart0_put(ADC_data);
+    uart0_put('\n');
+    uart0_put('\r');  //optional debug msg
 
-if(ADCH>1)uart0_put(ADCH);
+    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
+    if(!(trx24MCPS_DATA(tx_mesg, 8, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
+    if(!(trx24MCPS_DATA(ADC_data, 1, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
 
     uart0_put('\n');
     uart0_put('\r');
+    uart0_put('t');
+    uart0_put('x');
+    uart0_put('!');
+    uart0_put('\n');
+    uart0_put('\r');
 
-
-
-if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
-
-ADCSRA |= 0x08;	        //reenable ADC interrupts
+    ADCSRA |= 0x08;	        //reenable ADC interrupts
+    ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
+    sei();
 
 }
 
-/*ISR(TRX24_RX_END_vect)
+ISR(TRX24_RX_END_vect)
 {
    trx24_set_rx_safe();
 
@@ -140,7 +150,7 @@ ISR(TRX24_TX_END_vect)
 
    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);
 
-   if(!(trx24MCPS_DATA(ADC_data, 1, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55);
+//   if(!(trx24MCPS_DATA(ADC_data, 1, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55);
 
 
 //send sampled ADC value
@@ -148,7 +158,7 @@ ISR(TRX24_TX_END_vect)
 
 
 //only tx will be the beacon, set to RX_ON state after beacon is tx'd
-  // if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON))) err(10);
+   if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);
 //do I need to turn pll off now? I want to sample ADC, tx, sample, tx etc.
 
 }
@@ -190,8 +200,8 @@ ISR(SCNT_CMP3_vect)
     uart0_put('\n'); 
     uart0_put('\r');
 
-    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON)))  err(25);   
-}*/
+    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON)))  err(53);   
+}
 
 //-------------------------------------------------
 
@@ -218,7 +228,7 @@ int main(void)
     uart0_put('\n');
     uart0_put('\r');
     
- /*   if(!(trx24_init(TRX_INIT_PAN_COORD|TRX_INIT_TX_AUTO_CRC, THIS_CHANNEL))) err(1);
+    if(!(trx24_init(TRX_INIT_PAN_COORD|TRX_INIT_TX_AUTO_CRC, THIS_CHANNEL))) err(1);
 
     if(!(trx24_set_address(THIS_SHORT_ADDR, THIS_PAN_ID, THIS_LONG_ADDR))) err(2);
 
@@ -250,47 +260,24 @@ int main(void)
 
     //intialize the first beacon and let the rest be handled by the ISRs
 
-    trx24_sc_enable(); */
+    trx24_sc_enable(); 
 
-    uart0_put('\n');
-    uart0_put('\r');
-    uart0_put('g');
-    uart0_put('e');
-    uart0_put('n');
-    uart0_put('d');
-    uart0_put('e');
-    uart0_put('v');
-    uart0_put(' ');
-    uart0_put('l');
-    uart0_put('i');
-    uart0_put('s');
-    uart0_put('t');
-    uart0_put('e');
-    uart0_put('n');
-    uart0_put('i');
-    uart0_put('n');
-    uart0_put('g');
-    uart0_put('\n');
-    uart0_put('\r');
-
-    //enable ADC, free-running auto-trigger mode
-   /* ADCSRA |= 0x80;	//enable ADC
-    ADCSRA |= 0x20;	//auto-trigger enable
+    PRR0 &= (0 << PRADC);   //make sure power reduction disabled on ADC
+    PRR0 &= (0 << PRPGA);   //make sure power reduction disabled on PGA
+    ADCSRA &= (0 << ADPS2) | (0 << ADPS1) | (0 << ADPS0); // ADC prescaler
+    ADMUX &= (1 << REFS0); // Set ADC reference to AVCC
+    ADMUX &= (0 << REFS1); 
+    ADMUX &= 0xe0;	  //select ADC0 as input
+    ADMUX |= (1 << ADLAR); // Left adjust ADC result 
     ADCSRB &= 0xF8;	//free running mode
-    ADMUX |= 0x20;	//left-adjust ADC result*/
+    ADCSRA |= (1 << ADEN);  // Enable ADC 
+    ADCSRA |= (1 << ADIE);  // Enable ADC Interrupt 
+    ADCSRA |= (1 << ADSC);  // Start A2D Conversions 
 
-   ADCSRA |= (0 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); // Set ADC prescaler to 128 - 125KHz sample rate @ 16MHz 
-   ADMUX |= (1 << REFS0); // Set ADC reference to AVCC 
-   ADMUX |= (1 << ADLAR); // Left adjust ADC result to allow easy 8 bit reading 
-   ADCSRB &= 0xF8;	//free running mode
-   ADCSRA |= (1 << ADEN);  // Enable ADC 
-   ADCSRA |= (1 << ADIE);  // Enable ADC Interrupt 
-   ADCSRA |= (1 << ADSC);  // Start A2D Conversions 
 
-   // if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON)))
-     //   err(24);   
+    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON)))
+        err(24);   
     sei();
 
-    while(1){    //uart0_put('a');
- continue;}
+    while(1) continue;
 }
