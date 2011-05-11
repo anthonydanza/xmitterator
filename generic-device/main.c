@@ -32,12 +32,12 @@
 // gloabal device params 
 
 uint8_t hello_message[] = {'H','e','l','l','o',' ','D','U','D','E','S','!'};
-uint8_t tx_mesg[] = {'A','D','C',' ','V','A','L','='};
+uint8_t tx_mesg[] = {'A','D','C',' ','V','A','L','V','A','L','V','A','L','='};
 uint8_t mutant_i = 0;
 
 // general globals
-uint8_t ADC_data = 10;
-
+uint8_t ADC_data = 0;
+uint8_t tester = 9;
 
 //-------------------------------------------------
 
@@ -90,17 +90,20 @@ ISR(ADC_vect) {
     uart0_put('\n');
     uart0_put('\r');  //optional debug msg
 
-    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
-    if(!(trx24MCPS_DATA(tx_mesg, 8, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
-  //  if(!(trx24MCPS_DATA(ADC_data, 1, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
+    trx24_write(ADC_data, 0);
 
-    uart0_put('\n');
+    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
+  //  if(!(trx24MCPS_DATA(tx_mesg, 22, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
+  //  if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
+    if(!(trx24MCPS_DATA(TRX_FB_START(0), 8, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
+
+ /*   uart0_put('\n');
     uart0_put('\r');
     uart0_put('t');
     uart0_put('x');
     uart0_put('!');
     uart0_put('\n');
-    uart0_put('\r');
+    uart0_put('\r'); */
 
     ADCSRA |= 0x08;	        //reenable ADC interrupts
     ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
@@ -146,14 +149,9 @@ ISR(TRX24_RX_END_vect)
 
 ISR(TRX24_TX_END_vect)
 {
-   //check if ADC_data has been updated, transmit updated val
 
-//   if(!(trx24MCPS_DATA(ADC_data, 1, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55);
-
-
-//only tx will be the beacon, set to RX_ON state after beacon is tx'd
+   if(!(trx24MCPS_DATA(tx_mesg, 22, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);
-//do I need to turn pll off now? I want to sample ADC, tx, sample, tx etc.
 
 }
 
