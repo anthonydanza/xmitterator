@@ -86,13 +86,13 @@ ISR(ADC_vect) {
     uart0_put('a');
     uart0_put('l');
     uart0_put('=');
-    uart0_put(ADC_data);
+    uart0_print_uint(ADC_data);
     uart0_put('\n');
     uart0_put('\r');  //optional debug msg
 
     if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
     if(!(trx24MCPS_DATA(tx_mesg, 8, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
-    if(!(trx24MCPS_DATA(ADC_data, 1, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
+  //  if(!(trx24MCPS_DATA(ADC_data, 1, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
 
     uart0_put('\n');
     uart0_put('\r');
@@ -148,13 +148,7 @@ ISR(TRX24_TX_END_vect)
 {
    //check if ADC_data has been updated, transmit updated val
 
-   if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);
-
 //   if(!(trx24MCPS_DATA(ADC_data, 1, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55);
-
-
-//send sampled ADC value
-
 
 
 //only tx will be the beacon, set to RX_ON state after beacon is tx'd
@@ -163,7 +157,7 @@ ISR(TRX24_TX_END_vect)
 
 }
 
-ISR(SCNT_CMP2_vect)
+/*ISR(SCNT_CMP2_vect)
 {
 //use this timer to turn off the tranceiver at the end of the SuperFrame order
     uart0_put('\n'); 
@@ -201,7 +195,7 @@ ISR(SCNT_CMP3_vect)
     uart0_put('\r');
 
     if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON)))  err(53);   
-}
+}*/
 
 //-------------------------------------------------
 

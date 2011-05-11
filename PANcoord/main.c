@@ -88,7 +88,7 @@ ISR(TRX24_RX_END_vect)
         { uart0_put(TRX_FB_START(i)); }
 #endif
 
-
+   if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON))) err(10);
    trx24_clear_rx_safe();
 }
 
@@ -99,7 +99,7 @@ ISR(TRX24_TX_END_vect)
    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON))) err(10);
 }
 
-ISR(SCNT_CMP2_vect)
+/*ISR(SCNT_CMP2_vect)
 {
 #if defined(_DEBUG0)
 //use this timer to turn off the tranceiver at the end of the SuperFrame order
@@ -159,7 +159,7 @@ ISR(SCNT_CMP3_vect)
 #endif
 
     if(!(trx24_pan_beacon(TRX_BEACON_SHORT_ADDR|THIS_BO|THIS_SO, hello_message,12))) err(13);
-}
+}*/
 
 //-------------------------------------------------
 
