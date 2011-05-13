@@ -24,6 +24,8 @@
 #include "uart.c"
 #include "trx24.c"
 
+uint8_t recv_val = 0;
+
 
 //-------------------------------------------------
 
@@ -39,7 +41,7 @@ void err(uint8_t num)
     uart0_put('\n');
     uart0_print_hex(trx24PLME_SET_TRX_STATE_confirm());
     uart0_put('\r');
-    uart0_put('\r');
+    uart0_put('\r'); 
 
     while(1) continue;
 }
@@ -69,12 +71,16 @@ ISR(TRX24_RX_END_vect)
     uart0_put('\r');
     
     uint8_t i;
+    recv_val = TRX_FB_START(trx24MCPS_DATA_msdu());
+    uart0_print_uint(recv_val);
     
     for(i = 0; i<TST_RX_LENGTH; i++)
         { uart0_put(TRX_FB_START(i)); }
 
    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON)))
         err(24);  
+
+
 
    trx24_clear_rx_safe();
 }

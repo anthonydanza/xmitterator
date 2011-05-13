@@ -65,45 +65,9 @@ ISR(ADC_vect) {
   
     ADC_data = ADCH;	//put left-adjusted 8-bit val into ADC_data
 
-    uart0_put('\n');
-    uart0_put('\r');
-    uart0_put('a');
-    uart0_put('d');
-    uart0_put('c');
-    uart0_put('_');
-    uart0_put('i');
-    uart0_put('n');
-    uart0_put('t');
-    uart0_put('e');
-    uart0_put('r');
-    uart0_put('r');
-    uart0_put('u');
-    uart0_put('p');
-    uart0_put('t');
-    uart0_put('\n');
-    uart0_put('\r');
-    uart0_put('v');
-    uart0_put('a');
-    uart0_put('l');
-    uart0_put('=');
-    uart0_print_uint(ADC_data);
-    uart0_put('\n');
-    uart0_put('\r');  //optional debug msg
-
-    trx24_write(ADC_data, 0);
-
     if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
-  //  if(!(trx24MCPS_DATA(tx_mesg, 22, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
-  //  if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
-    if(!(trx24MCPS_DATA(TRX_FB_START(0), 8, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
 
- /*   uart0_put('\n');
-    uart0_put('\r');
-    uart0_put('t');
-    uart0_put('x');
-    uart0_put('!');
-    uart0_put('\n');
-    uart0_put('\r'); */
+    if(!(trx24MCPS_DATA(&ADC_data, 1, 0x88, TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
 
     ADCSRA |= 0x08;	        //reenable ADC interrupts
     ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
@@ -142,15 +106,15 @@ ISR(TRX24_RX_END_vect)
 
    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);
 
-   if(!(trx24MCPS_DATA(hello_message, 12, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
-   if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON))) err(56);
+   //if(!(trx24MCPS_DATA(hello_message, 12, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
+  // if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON))) err(56);
 }
 
 
 ISR(TRX24_TX_END_vect)
 {
 
-   if(!(trx24MCPS_DATA(tx_mesg, 22, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
+ //  if(!(trx24MCPS_DATA(tx_mesg, 22, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);
 
 }
