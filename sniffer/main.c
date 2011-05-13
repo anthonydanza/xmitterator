@@ -24,7 +24,7 @@
 #include "uart.c"
 #include "trx24.c"
 
-uint8_t recv_val = 0;
+uint8_t recv_val = 1;
 
 
 //-------------------------------------------------
@@ -94,13 +94,13 @@ ISR(TRX24_RX_START_vect)
     uart0_put('S'); 
     uart0_put('S'); 
     uart0_put(' '); 
-    uart0_print_uint((PHY_RSSI & 0x1F));
+//    uart0_print_uint((PHY_RSSI & 0x1F));
     uart0_put('\n'); 
     uart0_put('\r');
-    uart0_put('E'); 
-    uart0_put('D'); 
+ //   uart0_put('E'); 
+  //  uart0_put('D'); 
     uart0_put(' '); 
-    uart0_print_hex(PHY_ED_LEVEL);
+ //   uart0_print_hex(PHY_ED_LEVEL);
     uart0_put('\n'); 
     uart0_put('\r');
 }

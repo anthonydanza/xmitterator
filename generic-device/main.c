@@ -32,12 +32,13 @@
 // gloabal device params 
 
 uint8_t hello_message[] = {'H','e','l','l','o',' ','D','U','D','E','S','!'};
-uint8_t tx_mesg[] = {'A','D','C',' ','V','A','L','V','A','L','V','A','L','='};
 uint8_t mutant_i = 0;
 
 // general globals
 uint8_t ADC_data = 0;
-uint8_t tester = 9;
+uint8_t ADC_bottom_bits = 0;
+uint8_t tester = 0;
+
 
 //-------------------------------------------------
 
@@ -55,23 +56,41 @@ void err(uint8_t num)
     uart0_put('\r');
     uart0_put('\r');
 
+    /*ADCSRA |= 0x08;	        //reenable ADC interrupts
+    ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
+    sei();*/
+
     while(1) continue;
 }
 
 //-------------------------------------------------
 ISR(ADC_vect) {
 
-    ADCSRA &= 0xF7;	//diasble interrupts
-  
+    ADC_bottom_bits = ADCL;
     ADC_data = ADCH;	//put left-adjusted 8-bit val into ADC_data
+    tester++;
+if(tester>500) tester = 0;
+    uart0_put('\n');
+    uart0_put('\r');
+    uart0_put('a');
+    uart0_put('d');
+    uart0_put('c');
+    uart0_put(' ');
+    uart0_put('i');
+    uart0_put('n');
+    uart0_put('t');
+    uart0_put('p');
+    uart0_put('\n');
+    uart0_put('\r');
+    uart0_print_uint(tester); 
 
     if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
 
-    if(!(trx24MCPS_DATA(&ADC_data, 1, 0x88, TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
+  // if(!(trx24MCPS_DATA(hello_message, 12, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
 
-    ADCSRA |= 0x08;	        //reenable ADC interrupts
+    if(!(trx24MCPS_DATA(&tester, 8, 0x88, TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
+
     ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
-    sei();
 
 }
 
@@ -194,7 +213,7 @@ int main(void)
     trx24_set_relative_compare(2);
     trx24_set_relative_compare(3);
 
-    trx24_set_SCIRQ(TRX_SCI_CP2);
+/*    trx24_set_SCIRQ(TRX_SCI_CP2);
     trx24_set_SCIRQ(TRX_SCI_CP3);
     trx24_set_IRQ(TRX_IRQ_RX_END);
     trx24_set_IRQ(TRX_IRQ_TX_END);
@@ -216,14 +235,14 @@ int main(void)
 
     //intialize the first beacon and let the rest be handled by the ISRs
 
-    trx24_sc_enable(); 
+    trx24_sc_enable(); 			*/
 
     PRR0 &= (0 << PRADC);   //make sure power reduction disabled on ADC
     PRR0 &= (0 << PRPGA);   //make sure power reduction disabled on PGA
     ADCSRA &= (0 << ADPS2) | (0 << ADPS1) | (0 << ADPS0); // ADC prescaler
     ADMUX &= (1 << REFS0); // Set ADC reference to AVCC
     ADMUX &= (0 << REFS1); 
-    ADMUX &= 0xe0;	  //select ADC0 as input
+    ADMUX &= 0xE0;	  //select ADC0 as input
     ADMUX |= (1 << ADLAR); // Left adjust ADC result 
     ADCSRB &= 0xF8;	//free running mode
     ADCSRA |= (1 << ADEN);  // Enable ADC 
