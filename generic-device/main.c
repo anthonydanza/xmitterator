@@ -39,7 +39,6 @@ uint8_t ADC_data = 0;
 uint8_t ADC_bottom_bits = 0;
 uint8_t tester = 0;
 
-
 //-------------------------------------------------
 
 void err(uint8_t num)
@@ -68,9 +67,9 @@ ISR(ADC_vect) {
 
     ADC_bottom_bits = ADCL;
     ADC_data = ADCH;	//put left-adjusted 8-bit val into ADC_data
-    tester++;
-if(tester>500) tester = 0;
-    uart0_put('\n');
+//    tester++;
+//if(tester>500) tester = 0;
+ /*   uart0_put('\n');
     uart0_put('\r');
     uart0_put('a');
     uart0_put('d');
@@ -81,17 +80,25 @@ if(tester>500) tester = 0;
     uart0_put('t');
     uart0_put('p');
     uart0_put('\n');
-    uart0_put('\r');
-    uart0_print_uint(tester); 
+    uart0_put('\r');*/
+    if(ADC_data>0){ 
+       uart0_print_uint(ADC_data); 
+       uart0_put('\n');
+       uart0_put('\r');
+    }
 
     if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
 
-  // if(!(trx24MCPS_DATA(hello_message, 12, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
+   //if(!(trx24MCPS_DATA(hello_message, 14, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ; //doesn't work, throws error. some protocol disagreement.
 
-    if(!(trx24MCPS_DATA(&tester, 8, 0x88, TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
+   // uart0_print_uint(trx24MCPS_DATA(hello_message, 14, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A));
+
+    uart0_print_uint(trx24MCPS_DATA(&ADC_data, 8, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A)); //disregards error, seems to send value OK
+
+    //if(!(trx24MCPS_DATA(&ADC_data, 8, 0x88, TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
 
     ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
-
+    sei();
 }
 
 ISR(TRX24_RX_END_vect)
@@ -239,7 +246,8 @@ int main(void)
 
     PRR0 &= (0 << PRADC);   //make sure power reduction disabled on ADC
     PRR0 &= (0 << PRPGA);   //make sure power reduction disabled on PGA
-    ADCSRA &= (0 << ADPS2) | (0 << ADPS1) | (0 << ADPS0); // ADC prescaler
+    ADCSRA |= (0 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // ADC prescaler
+    ADCSRA &= (0 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // ADC prescaler
     ADMUX &= (1 << REFS0); // Set ADC reference to AVCC
     ADMUX &= (0 << REFS1); 
     ADMUX &= 0xE0;	  //select ADC0 as input

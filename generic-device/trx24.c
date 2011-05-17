@@ -549,14 +549,14 @@ uint8_t trx24MCPS_DATA(uint8_t *msdu, uint8_t msduLength, uint8_t sequence_num, 
     if(trx24PLME_SET_TRX_STATE_confirm() == TRX_STATE_TRX_OFF)
         {
          if(tx_args & TRX_SEND_TX_ARET_ON)
-             { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_TX_ARET_ON))) return 0;}
+             { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_TX_ARET_ON))) return -1;}
          else
-             { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) return 0;}
+             { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) return -2;}
         }
     else if(trx24PLME_SET_TRX_STATE_confirm() == TRX_STATE_PLL_ON && (tx_args & TRX_SEND_TX_ARET_ON))
-        { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_TX_ARET_ON))) return 0;}
+        { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_TX_ARET_ON))) return -3;}
     else if(trx24PLME_SET_TRX_STATE_confirm() == TRX_STATE_TX_ARET_ON && !(tx_args & TRX_SEND_TX_ARET_ON))
-        { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) return 0;}
+        { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) return -4;}
 
    uint8_t fb_pos = 1; 
    uint8_t buffer_byte;
