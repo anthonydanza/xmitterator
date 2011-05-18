@@ -23,7 +23,8 @@
 #define THIS_SO            TRX_BEACON_ORDER_5 // ~0.5 seconds
 
 //ADC Params
-#define BUFFER_SIZE 3
+#define BUFFER_SIZE 10
+#define ADC_FS 44100
 
 #include <avr/io.h>
 #include <stdio.h>
@@ -49,74 +50,37 @@ uint8_t fake = 0;
 void err(uint8_t num)
 {
     cli();
-    uart0_put('E');
-    uart0_put('R');
-    uart0_put('R');
-    uart0_put(' ');
+    uart0_print_str("\n\rERR ",6); 
     uart0_print_uint(num);
-    uart0_put('\r');
-    uart0_put('\n');
+    uart0_print_str("\n\r",2); 
     uart0_print_hex(trx24PLME_SET_TRX_STATE_confirm());
-    uart0_put('\r');
-    uart0_put('\r');
-
-    /*ADCSRA |= 0x08;	        //reenable ADC interrupts
-    ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
-    sei();*/
-
     while(1) continue;
 }
 
 //-------------------------------------------------
 ISR(ADC_vect) {
-
+//  uart0_print_str('adc interrupt',13);
 
     ADC_bottom_bits = ADCL;
-    ADC_data[0] = ADCH;	//put left-adjusted 8-bit val into ADC_data
+    ADC_data[0] = ADCH;		//put left-adjusted 8-bit val into ADC_data
 
-//    tester++;
-//if(tester>500) tester = 0;
- /*   uart0_put('\n');
-    uart0_put('\r');
-    uart0_put('a');
-    uart0_put('d');
-    uart0_put('c');
-    uart0_put(' ');
-    uart0_put('i');
-    uart0_put('n');
-    uart0_put('t');
-    uart0_put('p');
-    uart0_put('\n');
-    uart0_put('\r');*/
     if(ADC_data[0]>0){ 
-       uart0_print_uint(ADC_data[0]); 
-       uart0_put('\n');
-       uart0_put('\r');
+      uart0_print_str("ADC_data: ",10);
+      uart0_print_uint(ADC_data[0]); 
     }
 
- if(buffer_index > BUFFER_SIZE) {
-   // uart0_print_uint(buffer_index);	
-    uart0_put('\r');
-    uart0_put('\n');
-    buffer_index =0;
-	if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
-       // uart0_print_uint(trx24MCPS_DATA(&ADC_data, 8*BUFFER_SIZE, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A)); 
+    if(buffer_index > BUFFER_SIZE) {
+  	 // uart0_print_uint(buffer_index);	
+ 	 //  uart0_print_str("\n\r",2);  
+   	 buffer_index = 0;
+   	 if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
+    	uart0_print_uint(trx24MCPS_DATA(&ADC_data, 8*BUFFER_SIZE, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A)); 
    }else {
 	ADC_data[buffer_index] = ADCH;
    	buffer_index++;
    }
 
-//    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
-
-   //if(!(trx24MCPS_DATA(hello_message, 14, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ; //doesn't work, throws error. some protocol disagreement.
-
-   // uart0_print_uint(trx24MCPS_DATA(hello_message, 14, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A));
-
- //   uart0_print_uint(trx24MCPS_DATA(&ADC_data, 8, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A)); //disregards error, seems to send value OK
-
-    //if(!(trx24MCPS_DATA(&ADC_data, 8, 0x88, TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
-
-    ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
+   // ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
 }
 
 ISR(TRX24_RX_END_vect)
@@ -124,22 +88,9 @@ ISR(TRX24_RX_END_vect)
    trx24_set_rx_safe();
 
 // print the MAC data payload and some addressing info if data frame was correctly delivered.
-    uart0_put('\n'); 
-    uart0_put('\r');
-    uart0_put('<'); 
-    uart0_put('<'); 
-    uart0_put('<'); 
-    uart0_put('R'); 
-    uart0_put('X'); 
-    uart0_put('\n'); 
-    uart0_put('\r');
-    uart0_put('L'); 
-    uart0_put('Q'); 
-    uart0_put('I'); 
-    uart0_put(' '); 
-    uart0_print_uint(TRX_FB_START(TST_RX_LENGTH));
-    uart0_put('\n'); 
-    uart0_put('\r');
+//    uart0_print_str("\n\r<<<RX\nLQI ",12);    
+//    uart0_print_uint(TRX_FB_START(TST_RX_LENGTH));
+//    uart0_print_str("\n\r",2);    
     
     uint8_t i;
     
@@ -158,44 +109,32 @@ ISR(TRX24_TX_END_vect)
    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);
 }
 
+ISR(TIMER1_OVF_vect){
+
+   // ADCSRA &= (0 << ADIE);	//disable ADC interrupts
+    TCNT1 = 0;
+
+   // uart0_print_str("timer", 5);
+
+
+    ADCSRA |= (1 << ADIE);  // Enable ADC Interrupt 
+    ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
+}
+
 /*ISR(SCNT_CMP2_vect)
 {
-//use this timer to turn off the tranceiver at the end of the SuperFrame order
-    uart0_put('\n'); 
-    uart0_put('\r');
-    uart0_put('Z'); 
-    uart0_put('Z'); 
-    uart0_put('Z'); 
-    uart0_put('z'); 
-    uart0_put('z'); 
-    uart0_put('z'); 
-    uart0_put('Z'); 
-    uart0_put('Z'); 
-    uart0_put('z'); 
-    uart0_put('z'); 
-    uart0_put('.'); 
-    uart0_put('.'); 
-    uart0_put('.'); 
-    uart0_put('\n'); 
-    uart0_put('\r');
+   //use this timer to turn off the tranceiver at the end of the SuperFrame order
+   uart0_print_str("\n\rZ\n\r",5);     
+
    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_TRX_OFF))) err(11);
 }
 
 ISR(SCNT_CMP3_vect)
 {  
-//use this timer to start listening again 
+   //use this timer to start listening again 
+   uart0_print_str("\n\rRX_ON\n\r",9); 
 
-    uart0_put('\n'); 
-    uart0_put('\r');
-    uart0_put('R'); 
-    uart0_put('X'); 
-    uart0_put('_'); 
-    uart0_put('O'); 
-    uart0_put('N'); 
-    uart0_put('\n'); 
-    uart0_put('\r');
-
-    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON)))  err(53);   
+   if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON)))  err(53);   
 }*/
 
 //-------------------------------------------------
@@ -210,19 +149,8 @@ int main(void)
 
     uart0_init(57600);
 
-    uart0_put('\n');
-    uart0_put('\r');
-    uart0_put('i');
-    uart0_put('n');
-    uart0_put('i');
-    uart0_put('t');
-    uart0_put(' ');
-    uart0_put('t');
-    uart0_put('r');
-    uart0_put('x');
-    uart0_put('\n');
-    uart0_put('\r');
-    
+    uart0_print_str("\n\rINIT TRX\n\r",12); 
+
     if(!(trx24_init(TRX_INIT_PAN_COORD|TRX_INIT_TX_AUTO_CRC, THIS_CHANNEL))) err(1);
 
     if(!(trx24_set_address(THIS_SHORT_ADDR, THIS_PAN_ID, THIS_LONG_ADDR))) err(2);
@@ -257,9 +185,17 @@ int main(void)
 
     trx24_sc_enable(); 			*/
 
+    //timer init
+    TCCR1B|=(0<<CS02 | 0<<CS01) | (1<<CS00); 
+    TCCR1B&=(0<<CS02 | 0<<CS01) | (1<<CS00); 
+    TIMSK1 |=(1<<TOIE1);
+    TCNT1 = 0;
+
+
     PRR0 &= (0 << PRADC);   //make sure power reduction disabled on ADC
     PRR0 &= (0 << PRPGA);   //make sure power reduction disabled on PGA
-    ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // ADC prescaler
+    ADCSRA |= (0 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); // ADC prescaler
+    ADCSRA &= (0 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); // ADC prescaler
     ADMUX &= (1 << REFS0); // Set ADC reference to AVCC
     ADMUX &= (0 << REFS1); 
     ADMUX &= 0xE0;	  //select ADC0 as input

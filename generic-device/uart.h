@@ -31,6 +31,7 @@ extern void uart0_put(const char data_char);
 extern void uart0_print_hex(uint32_t data_uint);
 extern void uart0_print_uint(uint32_t data_uint);
 extern void uart0_print_int(int32_t data_int);
+extern void uart0_print_str(const char *data_str, uint8_t data_len);
 extern uint8_t uart0_get(void);
 #endif
 
