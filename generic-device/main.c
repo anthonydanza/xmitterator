@@ -35,7 +35,6 @@
 
 // gloabal device params 
 
-uint8_t hello_message[] = {'H','e','l','l','o',' ','D','U','D','E','S','!'};
 uint8_t mutant_i = 0;
 
 // general globals
