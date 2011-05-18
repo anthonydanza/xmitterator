@@ -547,16 +547,16 @@ uint8_t trx24MCPS_DATA(uint8_t *msdu, uint8_t msduLength, uint8_t sequence_num, 
 
 //start up the PLL
     if(trx24PLME_SET_TRX_STATE_confirm() == TRX_STATE_TRX_OFF)
-        {
+        {	
          if(tx_args & TRX_SEND_TX_ARET_ON)
-             { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_TX_ARET_ON))) return -1;}
+             { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_TX_ARET_ON))) return 0;}
          else
-             { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) return -2;}
+             { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) return 0;}
         }
     else if(trx24PLME_SET_TRX_STATE_confirm() == TRX_STATE_PLL_ON && (tx_args & TRX_SEND_TX_ARET_ON))
-        { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_TX_ARET_ON))) return -3;}
+        { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_TX_ARET_ON))) return 0;}
     else if(trx24PLME_SET_TRX_STATE_confirm() == TRX_STATE_TX_ARET_ON && !(tx_args & TRX_SEND_TX_ARET_ON))
-        { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) return -4;}
+        { if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) return 0;}
 
    uint8_t fb_pos = 1; 
    uint8_t buffer_byte;
@@ -626,7 +626,7 @@ uint8_t trx24MCPS_DATA(uint8_t *msdu, uint8_t msduLength, uint8_t sequence_num, 
     //AUX Security header would go here
     //write MAC payload
     if(msduLength > (128 - fb_pos -2))  //check if the data payload is too long
-        return 0;
+        return 6;
     trx24_writel(msdu, msduLength, fb_pos);
     fb_pos += (msduLength-1); 
     //go back and write the PHR (frame length)

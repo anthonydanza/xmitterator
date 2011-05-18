@@ -53,7 +53,7 @@ ISR(TRX24_RX_END_vect)
    trx24_set_rx_safe();
 
 // print the MAC data payload and some addressing info if data frame was correctly delivered.
-    uart0_put('\n'); 
+  /*  uart0_put('\n'); 
     uart0_put('\r');
     uart0_put('<'); 
     uart0_put('<'); 
@@ -66,16 +66,18 @@ ISR(TRX24_RX_END_vect)
     uart0_put('Q'); 
     uart0_put('I'); 
     uart0_put(' '); 
-    uart0_print_uint(TRX_FB_START(TST_RX_LENGTH));
-    uart0_put('\n'); 
+   // uart0_print_uint(TRX_FB_START(TST_RX_LENGTH));
+   // uart0_put('\n'); 
+   // uart0_put('\r');*/
+      uart0_put('\n'); 
     uart0_put('\r');
-    
     uint8_t i;
     recv_val = TRX_FB_START(trx24MCPS_DATA_msdu());
     uart0_print_uint(recv_val);
-    
-    for(i = 0; i<TST_RX_LENGTH; i++)
-        { uart0_put(TRX_FB_START(i)); }
+      uart0_put('\n'); 
+    uart0_put('\r');
+  //  for(i = 0; i<TST_RX_LENGTH; i++)
+   //     { uart0_put(TRX_FB_START(i)); }
 
    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON)))
         err(24);  
@@ -88,7 +90,7 @@ ISR(TRX24_RX_END_vect)
 ISR(TRX24_RX_START_vect)
 {
 
-    uart0_put('\n'); 
+ /*   uart0_put('\n'); 
     uart0_put('\r');
     uart0_put('R'); 
     uart0_put('S'); 
@@ -102,7 +104,7 @@ ISR(TRX24_RX_START_vect)
     uart0_put(' '); 
  //   uart0_print_hex(PHY_ED_LEVEL);
     uart0_put('\n'); 
-    uart0_put('\r');
+    uart0_put('\r');*/
 }
 //-------------------------------------------------
 

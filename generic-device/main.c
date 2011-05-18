@@ -22,6 +22,9 @@
 #define THIS_BO            TRX_BEACON_ORDER_7 // ~2 seconds 
 #define THIS_SO            TRX_BEACON_ORDER_5 // ~0.5 seconds
 
+//ADC Params
+#define BUFFER_SIZE 3
+
 #include <avr/io.h>
 #include <stdio.h>
 #include <avr/interrupt.h>
@@ -35,9 +38,11 @@ uint8_t hello_message[] = {'H','e','l','l','o',' ','D','U','D','E','S','!'};
 uint8_t mutant_i = 0;
 
 // general globals
-uint8_t ADC_data = 0;
+uint8_t ADC_data[BUFFER_SIZE] = {0};
+uint8_t buffer_index = 0;
 uint8_t ADC_bottom_bits = 0;
-uint8_t tester = 0;
+uint8_t fake = 0;
+
 
 //-------------------------------------------------
 
@@ -65,8 +70,10 @@ void err(uint8_t num)
 //-------------------------------------------------
 ISR(ADC_vect) {
 
+
     ADC_bottom_bits = ADCL;
-    ADC_data = ADCH;	//put left-adjusted 8-bit val into ADC_data
+    ADC_data[0] = ADCH;	//put left-adjusted 8-bit val into ADC_data
+
 //    tester++;
 //if(tester>500) tester = 0;
  /*   uart0_put('\n');
@@ -81,24 +88,35 @@ ISR(ADC_vect) {
     uart0_put('p');
     uart0_put('\n');
     uart0_put('\r');*/
-    if(ADC_data>0){ 
-       uart0_print_uint(ADC_data); 
+    if(ADC_data[0]>0){ 
+       uart0_print_uint(ADC_data[0]); 
        uart0_put('\n');
        uart0_put('\r');
     }
 
-    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
+ if(buffer_index > BUFFER_SIZE) {
+   // uart0_print_uint(buffer_index);	
+    uart0_put('\r');
+    uart0_put('\n');
+    buffer_index =0;
+	if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
+       // uart0_print_uint(trx24MCPS_DATA(&ADC_data, 8*BUFFER_SIZE, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A)); 
+   }else {
+	ADC_data[buffer_index] = ADCH;
+   	buffer_index++;
+   }
+
+//    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
 
    //if(!(trx24MCPS_DATA(hello_message, 14, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ; //doesn't work, throws error. some protocol disagreement.
 
    // uart0_print_uint(trx24MCPS_DATA(hello_message, 14, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A));
 
-    uart0_print_uint(trx24MCPS_DATA(&ADC_data, 8, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A)); //disregards error, seems to send value OK
+ //   uart0_print_uint(trx24MCPS_DATA(&ADC_data, 8, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A)); //disregards error, seems to send value OK
 
     //if(!(trx24MCPS_DATA(&ADC_data, 8, 0x88, TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
 
     ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
-    sei();
 }
 
 ISR(TRX24_RX_END_vect)
@@ -132,17 +150,12 @@ ISR(TRX24_RX_END_vect)
 
    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);
 
-   //if(!(trx24MCPS_DATA(hello_message, 12, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
-  // if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON))) err(56);
 }
 
 
 ISR(TRX24_TX_END_vect)
 {
-
- //  if(!(trx24MCPS_DATA(tx_mesg, 22, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A))) err(55) ;
    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);
-
 }
 
 /*ISR(SCNT_CMP2_vect)
@@ -246,8 +259,7 @@ int main(void)
 
     PRR0 &= (0 << PRADC);   //make sure power reduction disabled on ADC
     PRR0 &= (0 << PRPGA);   //make sure power reduction disabled on PGA
-    ADCSRA |= (0 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // ADC prescaler
-    ADCSRA &= (0 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // ADC prescaler
+    ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // ADC prescaler
     ADMUX &= (1 << REFS0); // Set ADC reference to AVCC
     ADMUX &= (0 << REFS1); 
     ADMUX &= 0xE0;	  //select ADC0 as input
