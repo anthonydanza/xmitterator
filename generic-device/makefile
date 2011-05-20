@@ -26,7 +26,7 @@ PROJECTNAME=xmit_test_device
 PRJSRC=main.c
 
 # additional includes (e.g. -I/path/to/mydir)
-INC= -I/usr/avr/include/ -I/usr/include
+INC= -I/Volumes/RAID_StripeA/eyetap_backup/home/home/raymond/34G/usr/avr/include/
 
 # libraries to link in (e.g. -lmylib)
 LIBS=

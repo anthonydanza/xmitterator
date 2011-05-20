@@ -72,17 +72,16 @@ ISR(TRX24_RX_END_vect)
       uart0_put('\n'); 
     uart0_put('\r');
     uint8_t i;
-    uint8_t recv_val_offset = TRX_FB_START(trx24MCPS_DATA_msdu());
-    uart0_print_uint(TRX_FB_START(recv_val_offset));
+ //   uint8_t recv_val_offset = TRX_FB_START(trx24MCPS_DATA_msdu());
+   // uart0_print_uint(recv_val_offset);
+ //   uart0_print_uint(TRX_FB_START(recv_val_offset));
       uart0_put('\n'); 
     uart0_put('\r');
-  //  for(i = 0; i<TST_RX_LENGTH; i++)
-   //     { uart0_put(TRX_FB_START(i)); }
+    for(i = 0; i<TST_RX_LENGTH; i++)
+        { uart0_print_uint(TRX_FB_START(i)); }
 
    if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_RX_ON)))
         err(24);  
-
-
 
    trx24_clear_rx_safe();
 }

@@ -38,7 +38,7 @@
 uint8_t mutant_i = 0;
 
 // general globals
-uint8_t ADC_data = 0;
+uint8_t ADC_data[BUFFER_SIZE] = {0};
 uint8_t buffer_index = 0;
 uint8_t ADC_bottom_bits = 0;
 uint8_t fake = 0;
@@ -61,42 +61,56 @@ ISR(ADC_vect) {
 //  uart0_print_str('adc interrupt',13);
 
     ADC_bottom_bits = ADCL;
-    ADC_data = ADCH;		//put left-adjusted 8-bit val into ADC_data
+   // ADC_data = ADCH;		//put left-adjusted 8-bit val into ADC_data
 
      
-      uart0_print_str("ADC_data: ",10);
-      uart0_print_uint(ADC_data); 
-      uart0_print_str("\n\r",2);  
+  //    uart0_print_str("ADC_data: ",10);
+   //   uart0_print_uint(ADC_data); 
+   //   uart0_print_str("\n\r",2);  
     
 
     if(buffer_index > BUFFER_SIZE) {
-  	  uart0_print_uint(buffer_index);	
- 	   uart0_print_str("---------------\n\r",17);  
+  	 // uart0_print_uint(buffer_index);	
+ 	 //  uart0_print_str("---------------\n\r",17);  
    	 buffer_index = 0;
    	 if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON))) err(53);	//turn PLL on to tx
-    //	uart0_print_uint(trx24MCPS_DATA(&ADC_data, 8*BUFFER_SIZE, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A)); 
+   //   uart0_print_str("\n\r",2);  
+    	uart0_print_uint(trx24MCPS_DATA(&ADC_data, 8*BUFFER_SIZE, TRX_FB_START(2), TRX_SEND_INTRAPAN|TRX_SEND_SRC_SHORT_ADDR|TRX_SEND_DEST_SHORT_ADDR, THIS_PAN_ID, 0x13A)); 
    }else {
-	//ADC_data[buffer_index] = ADCH;
+	ADC_data[buffer_index] = ADCH;
    	buffer_index++;
-      uart0_print_str("FUCKFUCK: ",10);
+
    }
 
-    ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
+    //ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
 }
 
 ISR(TIMER1_OVF_vect){
 
     TIMSK1 &=(0<<TOIE1);
-    TCNT1 = 0;
 
     uart0_print_str("timer", 5);
 
-    TIMSK1 |=(1<<TOIE1);
+
     ADCSRA |= (1 << ADIE);  // Enable ADC Interrupt 
     ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
+    sei();
+    TIMSK1 |=(1<<TOIE1);
 
 }
 
+ISR(TIMER1_COMP_vect) {
+
+    TIMSK1 &= (0<<OCIE1A);
+
+    uart0_print_str("timer", 5);
+
+
+    ADCSRA |= (1 << ADIE);  // Enable ADC Interrupt 
+    ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
+
+    TIMSK1 |= (1<<OCIE1A);
+}
 
 
 ISR(TRX24_RX_END_vect)
@@ -175,25 +189,29 @@ int main(void)
 
     trx24_sc_enable(); 			*/
 
-    //timer init
-    TCCR1B|=(0<<CS02 | 0<<CS01) | (1<<CS00); 
-    TCCR1B&=(0<<CS02 | 0<<CS01) | (1<<CS00); 
-   // 	 TIMSK1 |=(1<<TOIE1);
- //   TCNT1 = 0;
+
 
 
     PRR0 &= (0 << PRADC);   //make sure power reduction disabled on A
     PRR0 &= (0 << PRPGA);   //make sure power reduction disabled on PGA
     ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // ADC prescaler
     ADCSRA &= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // ADC prescaler
-    ADMUX |= (1 << REFS0); // Set ADC reference to AVCC
+    ADMUX &= (0 << REFS0); // Set ADC reference to AVCC
     ADMUX &= (0 << REFS1); 
     ADMUX &= 0xE0;	  //select ADC0 as input
     ADMUX |= (1 << ADLAR); // Left adjust ADC result 
     ADCSRB &= 0xF8;	//free running mode
     ADCSRA |= (1 << ADEN);  // Enable ADC 
     ADCSRA |= (1 << ADIE);  // Enable ADC Interrupt 
-    ADCSRA |= (1 << ADSC);  // Start A2D Conversions 
+    //ADCSRA |= (1 << ADSC);      // Start A2D Conversions 
+    //timer init
+    TCCR1B|=(0<<CS02 | 0<<CS01) | (1<<CS00); 
+    TCCR1B&=(0<<CS12 | 0<<CS11) | (1<<CS10); 
+    TIMSK1 |=(1<<TOIE1);
+
+    OCR1AH |= 0xFF;
+    OCR1AL |= 0xFF;
+    TCNT1 = 0;
 
 
     if(!(trx24PLME_SET_TRX_STATE(TRX_STATE_PLL_ON)))
