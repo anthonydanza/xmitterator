@@ -95,7 +95,7 @@ void uart0_print_str(const char *data_str, uint8_t data_len) {
     for(i = 0; i < data_len; i++) {
 	uart0_put(*(data_str+i));
     }
-    uart0_put('\r');
+   // uart0_put('\r');
 } 
 
 #endif /*defined _UART0*/

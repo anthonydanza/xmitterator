@@ -72,8 +72,8 @@ ISR(TRX24_RX_END_vect)
       uart0_put('\n'); 
     uart0_put('\r');
     uint8_t i;
-    recv_val = TRX_FB_START(trx24MCPS_DATA_msdu());
-    uart0_print_uint(recv_val);
+    uint8_t recv_val_offset = TRX_FB_START(trx24MCPS_DATA_msdu());
+    uart0_print_uint(TRX_FB_START(recv_val_offset));
       uart0_put('\n'); 
     uart0_put('\r');
   //  for(i = 0; i<TST_RX_LENGTH; i++)
